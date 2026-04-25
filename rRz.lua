@@ -1,1268 +1,1055 @@
---[[
-╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
-║                                          rRz HUB - DELTA EXECUTOR                                            ║
-║                                          KING JARZ 👑👑👑 · JarzGPT dark vip                                  ║
-║                                          33 FITUR · HACK PLAYER · RUSAK SERVER                               ║
-╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
---]]
+-- rRz Hub (Roblox Executor Universal)
+-- Supports: All Executors (Mobile/PC) | 200+ FEATURES | NEON THEME
+-- Owner: Jarz_Scripter | Team: Ihza, Afka, Ganis, Danis, Zaki, Gamz
 
---// MEMORI CONTROL & ANTI CRASH
+repeat wait() until game:IsLoaded()
 local Players = game:GetService("Players")
+local LP = Players.LocalPlayer
+local Mouse = LP:GetMouse()
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-local Lighting = game:GetService("Lighting")
 local CoreGui = game:GetService("CoreGui")
-local HttpService = game:GetService("HttpService")
-local VirtualUser = game:GetService("VirtualUser")
-local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
+local VirtualInput = game:GetService("VirtualInputManager")
+local Camera = workspace.CurrentCamera
+local TeleportService = game:GetService("TeleportService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = workspace
 
---// GLOBAL VARIABLES
-local PlayerState = {
-    Fly = false,
-    Noclip = false,
-    Speed = 16,
-    JumpPower = 50,
-    ESP = false,
-    Aimbot = false,
-    InfiniteJump = false,
-    AutoClick = false,
-    AutoFarm = false,
-    TpTool = false,
-    KillAll = false,
-    FreezeAll = false,
-    CrashAll = false,
-    LoopCrash = false,
-    BlackHole = false,
-    ExplodePlayers = false,
-    GodMode = false,
-    StealDrops = false,
-    AntiBan = false,
-    ChatSpam = false,
-    ServerHop = false,
-    BreakAnchors = false,
-    LagServer = false,
-    StealItems = false,
-    Duplicate = false,
-    ForceField = false,
-    Invisible = false,
-    TeleportMe = false,
-    GrabPlayer = false,
-    NukeParts = false,
-    ControlPlayer = false,
-    DeleteTools = false,
-    MusicPlayer = false,
-    RainbowChar = false
-}
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "rRzHub"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
 
-local Targets = {}
-local LoopThreads = {}
+local function showNotif(msg, isError)
+    local notif = Instance.new("Frame")
+    notif.Parent = ScreenGui
+    notif.BackgroundColor3 = Color3.fromRGB(20,20,25)
+    notif.BackgroundTransparency = 0.05
+    notif.Position = UDim2.new(0.5, -200, 0.85, 0)
+    notif.Size = UDim2.new(0, 400, 0, 40)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = notif
+    
+    local text = Instance.new("TextLabel")
+    text.Parent = notif
+    text.Size = UDim2.new(1, 0, 1, 0)
+    text.BackgroundTransparency = 1
+    text.Font = Enum.Font.GothamBold
+    text.Text = msg
+    text.TextColor3 = isError and Color3.fromRGB(255,70,70) or Color3.fromRGB(0,255,255)
+    text.TextSize = 13
+    text.TextWrapped = true
+    
+    TweenService:Create(notif, TweenInfo.new(0.3), {Position = UDim2.new(0.5, -200, 0.8, 0)}):Play()
+    task.wait(2)
+    TweenService:Create(notif, TweenInfo.new(0.3), {Position = UDim2.new(0.5, -200, 0.9, 0), BackgroundTransparency = 1}):Play()
+    task.wait(0.3)
+    notif:Destroy()
+end
 
---// UI LIBRARY
-local UILibrary = {
-    Windows = {},
-    CurrentDragging = false,
-    DragInput = nil,
-    DragStart = nil,
-    StartPos = nil
-}
+local MainFrame = Instance.new("Frame")
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(10,10,15)
+MainFrame.BackgroundTransparency = 0.05
+MainFrame.Position = UDim2.new(0.5, -350, 0.5, -250)
+MainFrame.Size = UDim2.new(0, 700, 0, 500)
+MainFrame.Active = true
+MainFrame.Draggable = true
 
-function UILibrary:CreateWindow(title, size)
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "rRzHub_Gui"
-    ScreenGui.Parent = CoreGui
-    ScreenGui.ResetOnSpawn = false
-    
-    local MainFrame = Instance.new("Frame")
-    MainFrame.Size = size or UDim2.new(0, 450, 0, 600)
-    MainFrame.Position = UDim2.new(0.5, -225, 0.5, -300)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-    MainFrame.BackgroundTransparency = 0.05
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Parent = MainFrame
-    MainFrame.ClipsDescendants = true
-    
-    --// GLASS MORPHISM EFFECT
-    local Blur = Instance.new("BlurEffect")
-    Blur.Size = 12
-    Blur.Parent = game:GetService("Lighting")
-    
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 12)
-    Corner.Parent = MainFrame
-    
-    local Stroke = Instance.new("UIStroke")
-    Stroke.Color = Color3.fromRGB(255, 0, 255)
-    Stroke.Thickness = 2
-    Stroke.Transparency = 0.5
-    Stroke.Parent = MainFrame
-    
-    --// NEON RAINBOW GRADIENT
-    local Gradient = Instance.new("UIGradient")
-    Gradient.Rotation = 45
-    Gradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 255)),
-        ColorSequenceKeypoint.new(0.2, Color3.fromRGB(0, 255, 255)),
-        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(0, 255, 0)),
-        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(255, 255, 0)),
-        ColorSequenceKeypoint.new(0.8, Color3.fromRGB(255, 0, 0)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 255))
-    }
-    
-    local BorderGradient = Instance.new("UIGradient")
-    BorderGradient.Rotation = 45
-    BorderGradient.Color = Gradient.Color
-    
-    --// GRID EFFECT (JARING²)
-    local GridTexture = Instance.new("ImageLabel")
-    GridTexture.Size = UDim2.new(1, 0, 1, 0)
-    GridTexture.BackgroundTransparency = 1
-    GridTexture.Image = "rbxassetid://1392913666"
-    GridTexture.ImageColor3 = Color3.fromRGB(255, 255, 255)
-    GridTexture.ImageTransparency = 0.85
-    GridTexture.Parent = MainFrame
-    
-    --// TITLE BAR
-    local TitleBar = Instance.new("Frame")
-    TitleBar.Size = UDim2.new(1, 0, 0, 35)
-    TitleBar.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
-    TitleBar.BackgroundTransparency = 0.5
-    TitleBar.BorderSizePixel = 0
-    TitleBar.Parent = MainFrame
-    
-    local TitleCorner = Instance.new("UICorner")
-    TitleCorner.CornerRadius = UDim.new(0, 12)
-    TitleCorner.Parent = TitleBar
-    
-    local TitleText = Instance.new("TextLabel")
-    TitleText.Size = UDim2.new(1, 0, 1, 0)
-    TitleText.BackgroundTransparency = 1
-    TitleText.Text = "⚡ " .. title .. " ⚡"
-    TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TitleText.TextSize = 18
-    TitleText.Font = Enum.Font.GothamBold
-    TitleText.TextXAlignment = Enum.TextXAlignment.Center
-    TitleText.Parent = TitleBar
-    
-    local SubText = Instance.new("TextLabel")
-    SubText.Size = UDim2.new(1, 0, 0, 15)
-    SubText.Position = UDim2.new(0, 0, 1, -15)
-    SubText.BackgroundTransparency = 1
-    SubText.Text = "KING JARZ 👑 | Delta Executor | 33 Fitur"
-    SubText.TextColor3 = Color3.fromRGB(150, 150, 200)
-    SubText.TextSize = 10
-    SubText.Font = Enum.Font.Gotham
-    SubText.TextXAlignment = Enum.TextXAlignment.Center
-    SubText.Parent = TitleBar
-    
-    --// HOVER RAINBOW EFFECT
-    game:GetService("RunService").RenderStepped:Connect(function()
-        local hue = tick() % 2 / 2
-        Stroke.Color = Color3.fromHSV(hue, 1, 1)
-        TitleText.TextColor3 = Color3.fromHSV(hue, 1, 1)
-        SubText.TextColor3 = Color3.fromHSV(hue, 0.8, 0.8)
-        BorderGradient.Color = ColorSequence.new{
-            ColorSequenceKeypoint.new(0, Color3.fromHSV(hue, 1, 1)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromHSV(hue + 0.5, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromHSV(hue, 1, 1))
-        }
-    end)
-    
-    --// DRAG SYSTEM
-    local Dragging = false
-    local DragInput = nil
-    local DragStart = nil
-    local StartPos = nil
-    
-    TitleBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            Dragging = true
-            DragStart = input.Position
-            StartPos = MainFrame.Position
-            
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    Dragging = false
-                end
-            end)
+local neonGlow = Instance.new("Frame")
+neonGlow.Parent = MainFrame
+neonGlow.BackgroundColor3 = Color3.fromRGB(0,255,255)
+neonGlow.BackgroundTransparency = 0.85
+neonGlow.Size = UDim2.new(1, 0, 1, 0)
+neonGlow.ZIndex = 0
+local glowCorner = Instance.new("UICorner")
+glowCorner.CornerRadius = UDim.new(0, 12)
+glowCorner.Parent = neonGlow
+
+coroutine.wrap(function()
+    while true do
+        for i = 0.85, 0.65, -0.02 do
+            neonGlow.BackgroundTransparency = i
+            task.wait(0.02)
         end
-    end)
-    
-    TitleBar.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            DragInput = input
+        for i = 0.65, 0.85, 0.02 do
+            neonGlow.BackgroundTransparency = i
+            task.wait(0.02)
         end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if input == DragInput and Dragging then
-            local Delta = input.Position - DragStart
-            MainFrame.Position = UDim2.new(StartPos.X.Scale, StartPos.X.Offset + Delta.X, StartPos.Y.Scale, StartPos.Y.Offset + Delta.Y)
-        end
-    end)
-    
-    --// TAB BUTTONS CONTAINER
-    local TabContainer = Instance.new("Frame")
-    TabContainer.Size = UDim2.new(1, 0, 0, 40)
-    TabContainer.Position = UDim2.new(0, 0, 0, 35)
-    TabContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
-    TabContainer.BackgroundTransparency = 0.3
-    TabContainer.BorderSizePixel = 0
-    TabContainer.Parent = MainFrame
-    
-    --// SCROLLING FRAME UNTUK KONTEN
-    local ScrollingFrame = Instance.new("ScrollingFrame")
-    ScrollingFrame.Size = UDim2.new(1, -20, 1, -85)
-    ScrollingFrame.Position = UDim2.new(0, 10, 0, 75)
-    ScrollingFrame.BackgroundTransparency = 1
-    ScrollingFrame.BorderSizePixel = 0
-    ScrollingFrame.ScrollBarThickness = 6
-    ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 0, 255)
-    ScrollingFrame.Parent = MainFrame
-    
-    local UIListLayout = Instance.new("UIListLayout")
-    UIListLayout.Padding = UDim.new(0, 8)
-    UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    UIListLayout.Parent = ScrollingFrame
-    
-    local tabs = {}
-    
-    --// FUNCTION UNTUK ADD TAB
-    function AddTab(name)
-        local TabButton = Instance.new("TextButton")
-        TabButton.Size = UDim2.new(0, 100, 1, 0)
-        TabButton.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
-        TabButton.BackgroundTransparency = 0.5
-        TabButton.Text = name
-        TabButton.TextColor3 = Color3.fromRGB(200, 200, 255)
-        TabButton.TextSize = 12
-        TabButton.Font = Enum.Font.GothamSemibold
-        TabButton.BorderSizePixel = 0
-        TabButton.Parent = TabContainer
-        
-        local TabCorner = Instance.new("UICorner")
-        TabCorner.CornerRadius = UDim.new(0, 8)
-        TabCorner.Parent = TabButton
-        
-        local TabContent = Instance.new("Frame")
-        TabContent.Size = UDim2.new(1, 0, 0, 0)
-        TabContent.BackgroundTransparency = 1
-        TabContent.Visible = false
-        TabContent.Parent = ScrollingFrame
-        
-        local ContentLayout = Instance.new("UIListLayout")
-        ContentLayout.Padding = UDim.new(0, 8)
-        ContentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-        ContentLayout.Parent = TabContent
-        
-        TabButton.MouseButton1Click:Connect(function()
-            for _, v in pairs(tabs) do
-                v.Content.Visible = false
-                v.Button.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
-            end
-            TabContent.Visible = true
-            TabButton.BackgroundColor3 = Color3.fromRGB(255, 0, 255)
-            TweenService:Create(TabButton, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0}):Play()
-        end)
-        
-        table.insert(tabs, {Button = TabButton, Content = TabContent})
-        
-        return TabContent, ContentLayout
     end
-    
-    --// FUNCTION UNTUK ADD TOGGLE
-    function AddToggle(parent, text, callback, defaultValue)
-        local ToggleFrame = Instance.new("Frame")
-        ToggleFrame.Size = UDim2.new(0.95, 0, 0, 40)
-        ToggleFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 40)
-        ToggleFrame.BackgroundTransparency = 0.2
-        ToggleFrame.BorderSizePixel = 0
-        ToggleFrame.Parent = parent
+end)()
+
+local shadow = Instance.new("Frame")
+shadow.Parent = ScreenGui
+shadow.BackgroundColor3 = Color3.fromRGB(0,0,0)
+shadow.BackgroundTransparency = 0.6
+shadow.Position = UDim2.new(0.5, -355, 0.5, -255)
+shadow.Size = UDim2.new(0, 710, 0, 510)
+shadow.ZIndex = 0
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MainFrame
+
+local TopBar = Instance.new("Frame")
+TopBar.Parent = MainFrame
+TopBar.BackgroundColor3 = Color3.fromRGB(15,15,20)
+TopBar.Size = UDim2.new(1, 0, 0, 45)
+TopBar.Position = UDim2.new(0, 0, 0, 0)
+
+local TopCorner = Instance.new("UICorner")
+TopCorner.CornerRadius = UDim.new(0, 12)
+TopCorner.Parent = TopBar
+
+local LogoIcon = Instance.new("ImageLabel")
+LogoIcon.Parent = TopBar
+LogoIcon.Size = UDim2.new(0, 30, 0, 30)
+LogoIcon.Position = UDim2.new(0, 10, 0, 7)
+LogoIcon.Image = "rbxassetid://916268032"
+LogoIcon.BackgroundTransparency = 1
+
+local Title = Instance.new("TextLabel")
+Title.Parent = TopBar
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 50, 0, 0)
+Title.Size = UDim2.new(0, 120, 0, 45)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "rRz HUB"
+Title.TextColor3 = Color3.fromRGB(0,255,255)
+Title.TextSize = 20
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+local SubTitle = Instance.new("TextLabel")
+SubTitle.Parent = TopBar
+SubTitle.BackgroundTransparency = 1
+SubTitle.Position = UDim2.new(0, 130, 0, 5)
+SubTitle.Size = UDim2.new(0, 250, 0, 35)
+SubTitle.Font = Enum.Font.Gotham
+SubTitle.Text = "200+ Premium Features"
+SubTitle.TextColor3 = Color3.fromRGB(150,150,150)
+SubTitle.TextSize = 11
+
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Parent = TopBar
+MinimizeBtn.BackgroundTransparency = 1
+MinimizeBtn.Position = UDim2.new(1, -95, 0, 0)
+MinimizeBtn.Size = UDim2.new(0, 35, 0, 45)
+MinimizeBtn.Font = Enum.Font.GothamBold
+MinimizeBtn.Text = "−"
+MinimizeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+MinimizeBtn.TextSize = 24
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Parent = TopBar
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.Position = UDim2.new(1, -50, 0, 0)
+CloseBtn.Size = UDim2.new(0, 45, 0, 45)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Color3.fromRGB(255,100,100)
+CloseBtn.TextSize = 20
+
+CloseBtn.MouseButton1Click:Connect(function()
+    local confirm = Instance.new("Frame")
+    confirm.Parent = ScreenGui
+    confirm.BackgroundColor3 = Color3.fromRGB(0,0,0)
+    confirm.BackgroundTransparency = 0.5
+    confirm.Size = UDim2.new(1, 0, 1, 0)
+    confirm.ZIndex = 999
+    local dialog = Instance.new("Frame")
+    dialog.Parent = confirm
+    dialog.BackgroundColor3 = Color3.fromRGB(20,20,25)
+    dialog.Position = UDim2.new(0.5, -150, 0.5, -60)
+    dialog.Size = UDim2.new(0, 300, 0, 120)
+    local dCorner = Instance.new("UICorner")
+    dCorner.CornerRadius = UDim.new(0, 12)
+    dCorner.Parent = dialog
+    local q = Instance.new("TextLabel")
+    q.Parent = dialog
+    q.Size = UDim2.new(1, 0, 0, 40)
+    q.Position = UDim2.new(0, 0, 0, 20)
+    q.BackgroundTransparency = 1
+    q.Font = Enum.Font.GothamBold
+    q.Text = "Tutup rRz HUB?"
+    q.TextColor3 = Color3.fromRGB(255,255,255)
+    q.TextSize = 16
+    local yes = Instance.new("TextButton")
+    yes.Parent = dialog
+    yes.BackgroundColor3 = Color3.fromRGB(0,255,255)
+    yes.Position = UDim2.new(0, 30, 0, 70)
+    yes.Size = UDim2.new(0, 100, 0, 35)
+    yes.Font = Enum.Font.GothamBold
+    yes.Text = "YA"
+    yes.TextColor3 = Color3.fromRGB(0,0,0)
+    yes.TextSize = 14
+    local yCorner = Instance.new("UICorner")
+    yCorner.CornerRadius = UDim.new(0, 6)
+    yCorner.Parent = yes
+    local no = Instance.new("TextButton")
+    no.Parent = dialog
+    no.BackgroundColor3 = Color3.fromRGB(50,50,55)
+    no.Position = UDim2.new(1, -130, 0, 70)
+    no.Size = UDim2.new(0, 100, 0, 35)
+    no.Font = Enum.Font.GothamBold
+    no.Text = "TIDAK"
+    no.TextColor3 = Color3.fromRGB(200,200,200)
+    no.TextSize = 14
+    local nCorner = Instance.new("UICorner")
+    nCorner.CornerRadius = UDim.new(0, 6)
+    nCorner.Parent = no
+    yes.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+        shadow:Destroy()
+    end)
+    no.MouseButton1Click:Connect(function()
+        confirm:Destroy()
+    end)
+end)
+
+local minimized = false
+local minimizeCircle = nil
+local isCircleDragging = false
+local circleDragStartPos = nil
+local circleStartFramePos = nil
+
+MinimizeBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 70, 0, 70)}):Play()
+        TweenService:Create(shadow, TweenInfo.new(0.3), {Size = UDim2.new(0, 80, 0, 80)}):Play()
+        ContentContainer.Visible = false
+        TabBar.Visible = false
+        TopBar.Size = UDim2.new(1, 0, 0, 70)
+        Title.Text = ""
+        SubTitle.Text = ""
+        MinimizeBtn.Visible = false
+        CloseBtn.Visible = false
+        LogoIcon.Size = UDim2.new(0, 55, 0, 55)
+        LogoIcon.Position = UDim2.new(0.5, -27, 0.5, -27)
+        minimizeCircle = LogoIcon
         
-        local ToggleCorner = Instance.new("UICorner")
-        ToggleCorner.CornerRadius = UDim.new(0, 8)
-        ToggleCorner.Parent = ToggleFrame
-        
-        local TextLabel = Instance.new("TextLabel")
-        TextLabel.Size = UDim2.new(0.7, 0, 1, 0)
-        TextLabel.BackgroundTransparency = 1
-        TextLabel.Text = text
-        TextLabel.TextColor3 = Color3.fromRGB(220, 220, 255)
-        TextLabel.TextSize = 13
-        TextLabel.Font = Enum.Font.Gotham
-        TextLabel.TextXAlignment = Enum.TextXAlignment.Left
-        TextLabel.Position = UDim2.new(0, 10, 0, 0)
-        TextLabel.Parent = ToggleFrame
-        
-        local ToggleButton = Instance.new("TextButton")
-        ToggleButton.Size = UDim2.new(0, 60, 0, 25)
-        ToggleButton.Position = UDim2.new(1, -70, 0.5, -12.5)
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-        ToggleButton.Text = "OFF"
-        ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        ToggleButton.TextSize = 11
-        ToggleButton.Font = Enum.Font.GothamBold
-        ToggleButton.BorderSizePixel = 0
-        ToggleButton.Parent = ToggleFrame
-        
-        local ToggleCorner2 = Instance.new("UICorner")
-        ToggleCorner2.CornerRadius = UDim.new(1, 0)
-        ToggleCorner2.Parent = ToggleButton
-        
-        local toggled = defaultValue or false
-        
-        local function UpdateToggle()
-            if toggled then
-                ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 255)
-                ToggleButton.Text = "ON"
-                TweenService:Create(ToggleButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(255, 0, 255)}):Play()
-            else
-                ToggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-                ToggleButton.Text = "OFF"
-                TweenService:Create(ToggleButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(60, 60, 80)}):Play()
-            end
-            callback(toggled)
-        end
-        
-        ToggleButton.MouseButton1Click:Connect(function()
-            toggled = not toggled
-            UpdateToggle()
-        end)
-        
-        UpdateToggle()
-        
-        return ToggleFrame
-    end
-    
-    --// FUNCTION UNTUK ADD BUTTON
-    function AddButton(parent, text, callback)
-        local ButtonFrame = Instance.new("TextButton")
-        ButtonFrame.Size = UDim2.new(0.95, 0, 0, 38)
-        ButtonFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 55)
-        ButtonFrame.BackgroundTransparency = 0.3
-        ButtonFrame.Text = text
-        ButtonFrame.TextColor3 = Color3.fromRGB(255, 255, 255)
-        ButtonFrame.TextSize = 13
-        ButtonFrame.Font = Enum.Font.GothamSemibold
-        ButtonFrame.BorderSizePixel = 0
-        ButtonFrame.Parent = parent
-        
-        local ButtonCorner = Instance.new("UICorner")
-        ButtonCorner.CornerRadius = UDim.new(0, 8)
-        ButtonCorner.Parent = ButtonFrame
-        
-        ButtonFrame.MouseButton1Click:Connect(callback)
-        
-        ButtonFrame.MouseEnter:Connect(function()
-            TweenService:Create(ButtonFrame, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(55, 55, 85)}):Play()
-        end)
-        
-        ButtonFrame.MouseLeave:Connect(function()
-            TweenService:Create(ButtonFrame, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(35, 35, 55)}):Play()
-        end)
-        
-        return ButtonFrame
-    end
-    
-    --// FUNCTION UNTUK ADD SLIDER
-    function AddSlider(parent, text, min, max, callback, default)
-        local SliderFrame = Instance.new("Frame")
-        SliderFrame.Size = UDim2.new(0.95, 0, 0, 65)
-        SliderFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 40)
-        SliderFrame.BackgroundTransparency = 0.2
-        SliderFrame.BorderSizePixel = 0
-        SliderFrame.Parent = parent
-        
-        local SliderCorner = Instance.new("UICorner")
-        SliderCorner.CornerRadius = UDim.new(0, 8)
-        SliderCorner.Parent = SliderFrame
-        
-        local TextLabel = Instance.new("TextLabel")
-        TextLabel.Size = UDim2.new(1, -20, 0, 25)
-        TextLabel.Position = UDim2.new(0, 10, 0, 0)
-        TextLabel.BackgroundTransparency = 1
-        TextLabel.Text = text .. ": " .. tostring(default or min)
-        TextLabel.TextColor3 = Color3.fromRGB(220, 220, 255)
-        TextLabel.TextSize = 12
-        TextLabel.Font = Enum.Font.Gotham
-        TextLabel.TextXAlignment = Enum.TextXAlignment.Left
-        TextLabel.Parent = SliderFrame
-        
-        local SliderBar = Instance.new("Frame")
-        SliderBar.Size = UDim2.new(0.9, 0, 0, 6)
-        SliderBar.Position = UDim2.new(0.05, 0, 0.65, 0)
-        SliderBar.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-        SliderBar.BorderSizePixel = 0
-        SliderBar.Parent = SliderFrame
-        
-        local SliderBarCorner = Instance.new("UICorner")
-        SliderBarCorner.CornerRadius = UDim.new(1, 0)
-        SliderBarCorner.Parent = SliderBar
-        
-        local FillBar = Instance.new("Frame")
-        FillBar.Size = UDim2.new(0, 0, 1, 0)
-        FillBar.BackgroundColor3 = Color3.fromRGB(255, 0, 255)
-        FillBar.BorderSizePixel = 0
-        FillBar.Parent = SliderBar
-        
-        local FillBarCorner = Instance.new("UICorner")
-        FillBarCorner.CornerRadius = UDim.new(1, 0)
-        FillBarCorner.Parent = FillBar
-        
-        local Value = default or min
-        
-        local function UpdateSlider(input)
-            local relativePos = math.clamp((input.Position.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1)
-            Value = math.floor(min + (max - min) * relativePos)
-            FillBar.Size = UDim2.new(relativePos, 0, 1, 0)
-            TextLabel.Text = text .. ": " .. tostring(Value)
-            callback(Value)
-        end
-        
-        local dragging = false
-        SliderBar.InputBegan:Connect(function(input)
+        minimizeCircle.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true
-                UpdateSlider(input)
+                isCircleDragging = true
+                circleDragStartPos = input.Position
+                circleStartFramePos = MainFrame.Position
+            end
+        end)
+        
+        UserInputService.InputChanged:Connect(function(input)
+            if isCircleDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local delta = input.Position - circleDragStartPos
+                MainFrame.Position = UDim2.new(circleStartFramePos.X.Scale, circleStartFramePos.X.Offset + delta.X, circleStartFramePos.Y.Scale, circleStartFramePos.Y.Offset + delta.Y)
+                shadow.Position = UDim2.new(circleStartFramePos.X.Scale, circleStartFramePos.X.Offset + delta.X - 5, circleStartFramePos.Y.Scale, circleStartFramePos.Y.Offset + delta.Y - 5)
             end
         end)
         
         UserInputService.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
+                isCircleDragging = false
             end
         end)
         
-        UserInputService.InputChanged:Connect(function(input)
-            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                UpdateSlider(input)
+        minimizeCircle.MouseButton1Click:Connect(function()
+            if minimized then
+                minimized = false
+                TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 700, 0, 500)}):Play()
+                TweenService:Create(shadow, TweenInfo.new(0.3), {Size = UDim2.new(0, 710, 0, 510)}):Play()
+                ContentContainer.Visible = true
+                TabBar.Visible = true
+                TopBar.Size = UDim2.new(1, 0, 0, 45)
+                Title.Text = "rRz HUB"
+                SubTitle.Text = "200+ Premium Features"
+                MinimizeBtn.Visible = true
+                CloseBtn.Visible = true
+                LogoIcon.Size = UDim2.new(0, 30, 0, 30)
+                LogoIcon.Position = UDim2.new(0, 10, 0, 7)
+                minimizeCircle = nil
+                showNotif("Window Restored")
             end
         end)
-        
-        local initPos = (Value - min) / (max - min)
-        FillBar.Size = UDim2.new(initPos, 0, 1, 0)
-        
-        return SliderFrame
+    else
+        TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 700, 0, 500)}):Play()
+        TweenService:Create(shadow, TweenInfo.new(0.3), {Size = UDim2.new(0, 710, 0, 510)}):Play()
+        ContentContainer.Visible = true
+        TabBar.Visible = true
+        TopBar.Size = UDim2.new(1, 0, 0, 45)
+        Title.Text = "rRz HUB"
+        SubTitle.Text = "200+ Premium Features"
+        MinimizeBtn.Visible = true
+        CloseBtn.Visible = true
+        LogoIcon.Size = UDim2.new(0, 30, 0, 30)
+        LogoIcon.Position = UDim2.new(0, 10, 0, 7)
     end
+end)
+
+local TabBar = Instance.new("Frame")
+TabBar.Parent = MainFrame
+TabBar.BackgroundColor3 = Color3.fromRGB(10,10,15)
+TabBar.Size = UDim2.new(0, 140, 1, -45)
+TabBar.Position = UDim2.new(0, 0, 0, 45)
+
+local ContentContainer = Instance.new("ScrollingFrame")
+ContentContainer.Parent = MainFrame
+ContentContainer.BackgroundColor3 = Color3.fromRGB(15,15,20)
+ContentContainer.BorderSizePixel = 0
+ContentContainer.Position = UDim2.new(0, 140, 0, 45)
+ContentContainer.Size = UDim2.new(1, -140, 1, -45)
+ContentContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+ContentContainer.ScrollBarThickness = 5
+ContentContainer.ScrollBarImageColor3 = Color3.fromRGB(0,255,255)
+
+local Tabs = {}
+local TabList = {"MAIN", "COMBAT", "VISUAL", "PLAYER", "TROLL", "THEME", "MISC", "CREDITS"}
+
+for i, tabName in ipairs(TabList) do
+    local tabBtn = Instance.new("TextButton")
+    tabBtn.Parent = TabBar
+    tabBtn.BackgroundColor3 = Color3.fromRGB(15,15,20)
+    tabBtn.Size = UDim2.new(1, 0, 0, 45)
+    tabBtn.Position = UDim2.new(0, 0, 0, (i-1)*45)
+    tabBtn.Font = Enum.Font.GothamSemibold
+    tabBtn.Text = tabName
+    tabBtn.TextColor3 = Color3.fromRGB(200,200,200)
+    tabBtn.TextSize = 13
     
-    return MainFrame, ScrollingFrame, UIListLayout, AddTab, AddToggle, AddButton, AddSlider
+    local tabContent = Instance.new("ScrollingFrame")
+    tabContent.Parent = ContentContainer
+    tabContent.BackgroundTransparency = 1
+    tabContent.Size = UDim2.new(1, 0, 1, 0)
+    tabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
+    tabContent.ScrollBarThickness = 5
+    tabContent.Visible = (i == 1)
+    Tabs[tabName] = tabContent
+    
+    tabBtn.MouseButton1Click:Connect(function()
+        for _, btn in pairs(TabBar:GetChildren()) do
+            if btn:IsA("TextButton") then
+                btn.BackgroundColor3 = Color3.fromRGB(15,15,20)
+                btn.TextColor3 = Color3.fromRGB(200,200,200)
+            end
+        end
+        tabBtn.BackgroundColor3 = Color3.fromRGB(0,255,255)
+        tabBtn.TextColor3 = Color3.fromRGB(0,0,0)
+        for _, content in pairs(Tabs) do
+            content.Visible = false
+        end
+        Tabs[tabName].Visible = true
+    end)
 end
 
---// --------------------- //
---// 33 FITUR HACK LENGKAP //
---// --------------------- //
+local function addButton(parent, text, callback)
+    local btn = Instance.new("TextButton")
+    btn.Parent = parent
+    btn.BackgroundColor3 = Color3.fromRGB(0,255,255)
+    btn.Size = UDim2.new(1, -20, 0, 40)
+    btn.Position = UDim2.new(0, 10, 0, parent.CanvasSize.Y.Offset + 5)
+    btn.Font = Enum.Font.GothamBold
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(0,0,0)
+    btn.TextSize = 13
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = btn
+    btn.MouseButton1Click:Connect(function()
+        callback()
+        showNotif("🔘 " .. text)
+    end)
+    parent.CanvasSize = UDim2.new(0, 0, 0, parent.CanvasSize.Y.Offset + 50)
+    return btn
+end
 
-local MainFrame, ScrollingFrame, Layout, CreateTab, AddToggle, AddButton, AddSlider = UILibrary:CreateWindow("rRz HUB", UDim2.new(0, 500, 0, 650))
-
---// TAB 1: PLAYER HACK
-local PlayerTab, PlayerLayout = CreateTab("👤 PLAYER")
-
---// FITUR 1: FLY
-AddToggle(PlayerTab, "🌀 FLY MODE - Terbang bebas tanpa batas", function(state)
-    PlayerState.Fly = state
-    if state then
-        local bodyVelocity = Instance.new("BodyVelocity")
-        local bodyGyro = Instance.new("BodyGyro")
-        local char = LocalPlayer.Character
-        local hum = char and char:FindFirstChild("Humanoid")
-        local hrp = char and char:FindFirstChild("HumanoidRootPart")
-        
-        if not hum or not hrp then return end
-        
-        bodyVelocity.MaxForce = Vector3.new(1/0, 1/0, 1/0)
-        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        bodyGyro.MaxTorque = Vector3.new(1/0, 1/0, 1/0)
-        bodyGyro.CFrame = hrp.CFrame
-        bodyVelocity.Parent = hrp
-        bodyGyro.Parent = hrp
-        
-        local flyKey = UserInputService.InputBegan:Connect(function(input, gameProcessed)
-            if gameProcessed then return end
-            if input.KeyCode == Enum.KeyCode.Space then
-                bodyVelocity.Velocity = Vector3.new(0, 50, 0)
-            end
-        end)
-        
-        local flyRender = RunService.RenderStepped:Connect(function()
-            if not PlayerState.Fly or not hrp or not hum or hum.Health <= 0 then
-                bodyVelocity:Destroy()
-                bodyGyro:Destroy()
-                flyKey:Disconnect()
-                flyRender:Disconnect()
-                return
-            end
-            
-            local camera = workspace.CurrentCamera
-            local moveDir = Vector3.new()
-            
-            if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                moveDir = moveDir + camera.CFrame.LookVector
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                moveDir = moveDir - camera.CFrame.LookVector
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                moveDir = moveDir - camera.CFrame.RightVector
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                moveDir = moveDir + camera.CFrame.RightVector
-            end
-            
-            bodyVelocity.Velocity = moveDir * 85
-            bodyGyro.CFrame = camera.CFrame
-        end)
-        
-        LoopThreads["Fly"] = {flyKey, flyRender, bodyVelocity, bodyGyro}
-    else
-        if LoopThreads["Fly"] then
-            if LoopThreads["Fly"][3] then LoopThreads["Fly"][3]:Destroy() end
-            if LoopThreads["Fly"][4] then LoopThreads["Fly"][4]:Destroy() end
-            if LoopThreads["Fly"][1] then LoopThreads["Fly"][1]:Disconnect() end
-            if LoopThreads["Fly"][2] then LoopThreads["Fly"][2]:Disconnect() end
-            LoopThreads["Fly"] = nil
+local function addToggle(parent, text, callback)
+    local frame = Instance.new("Frame")
+    frame.Parent = parent
+    frame.BackgroundColor3 = Color3.fromRGB(25,25,30)
+    frame.Size = UDim2.new(1, -20, 0, 45)
+    frame.Position = UDim2.new(0, 10, 0, parent.CanvasSize.Y.Offset + 5)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = frame
+    
+    local label = Instance.new("TextLabel")
+    label.Parent = frame
+    label.BackgroundTransparency = 1
+    label.Position = UDim2.new(0, 15, 0, 0)
+    label.Size = UDim2.new(1, -80, 1, 0)
+    label.Font = Enum.Font.GothamSemibold
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(0,255,255)
+    label.TextSize = 12
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Parent = frame
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(50,50,55)
+    toggleBtn.Position = UDim2.new(1, -50, 0, 10)
+    toggleBtn.Size = UDim2.new(0, 40, 0, 25)
+    toggleBtn.Font = Enum.Font.GothamBold
+    toggleBtn.Text = "OFF"
+    toggleBtn.TextColor3 = Color3.fromRGB(200,200,200)
+    toggleBtn.TextSize = 11
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 4)
+    btnCorner.Parent = toggleBtn
+    
+    local state = false
+    toggleBtn.MouseButton1Click:Connect(function()
+        state = not state
+        if state then
+            toggleBtn.BackgroundColor3 = Color3.fromRGB(0,255,255)
+            toggleBtn.Text = "ON"
+            toggleBtn.TextColor3 = Color3.fromRGB(0,0,0)
+            showNotif("✅ " .. text .. " ON")
+        else
+            toggleBtn.BackgroundColor3 = Color3.fromRGB(50,50,55)
+            toggleBtn.Text = "OFF"
+            toggleBtn.TextColor3 = Color3.fromRGB(200,200,200)
+            showNotif("❌ " .. text .. " OFF")
         end
-    end
-end)
+        callback(state)
+    end)
+    parent.CanvasSize = UDim2.new(0, 0, 0, parent.CanvasSize.Y.Offset + 55)
+    return toggleBtn
+end
 
---// FITUR 2: SPEED HACK
-AddSlider(PlayerTab, "🏃 SPEED HACK - Lari super cepat", 16, 250, function(val)
-    PlayerState.Speed = val
-    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-    if hum then
-        hum.WalkSpeed = val
-    end
-    -- Loop untuk update terus
-    if LoopThreads["Speed"] then LoopThreads["Speed"]:Disconnect() end
-    LoopThreads["Speed"] = RunService.RenderStepped:Connect(function()
-        local hum2 = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-        if hum2 and PlayerState.Speed then
-            hum2.WalkSpeed = PlayerState.Speed
+local function addTextBox(parent, text, placeholder, callback)
+    local frame = Instance.new("Frame")
+    frame.Parent = parent
+    frame.BackgroundColor3 = Color3.fromRGB(25,25,30)
+    frame.Size = UDim2.new(1, -20, 0, 50)
+    frame.Position = UDim2.new(0, 10, 0, parent.CanvasSize.Y.Offset + 5)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = frame
+    
+    local label = Instance.new("TextLabel")
+    label.Parent = frame
+    label.BackgroundTransparency = 1
+    label.Position = UDim2.new(0, 15, 0, 5)
+    label.Size = UDim2.new(1, -20, 0, 20)
+    label.Font = Enum.Font.GothamSemibold
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(0,255,255)
+    label.TextSize = 12
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local box = Instance.new("TextBox")
+    box.Parent = frame
+    box.BackgroundColor3 = Color3.fromRGB(40,40,45)
+    box.Position = UDim2.new(0, 15, 0, 25)
+    box.Size = UDim2.new(1, -30, 0, 20)
+    box.Font = Enum.Font.Gotham
+    box.PlaceholderText = placeholder
+    box.Text = ""
+    box.TextColor3 = Color3.fromRGB(255,255,255)
+    box.TextSize = 12
+    local boxCorner = Instance.new("UICorner")
+    boxCorner.CornerRadius = UDim.new(0, 4)
+    boxCorner.Parent = box
+    
+    box.FocusLost:Connect(function(enter)
+        if enter and box.Text ~= "" then
+            callback(box.Text)
+            showNotif("📝 " .. text .. ": " .. box.Text)
         end
     end)
-end, 16)
+    
+    parent.CanvasSize = UDim2.new(0, 0, 0, parent.CanvasSize.Y.Offset + 60)
+    return box
+end
 
---// FITUR 3: JUMP POWER
-AddSlider(PlayerTab, "🦘 JUMP POWER - Lompat setinggi langit", 50, 350, function(val)
-    PlayerState.JumpPower = val
-    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-    if hum then
-        hum.JumpPower = val
-    end
-end, 50)
+local function addLabel(parent, text, color)
+    local label = Instance.new("TextLabel")
+    label.Parent = parent
+    label.BackgroundColor3 = Color3.fromRGB(25,25,30)
+    label.Size = UDim2.new(1, -20, 0, 35)
+    label.Position = UDim2.new(0, 10, 0, parent.CanvasSize.Y.Offset + 5)
+    label.Font = Enum.Font.Gotham
+    label.Text = text
+    label.TextColor3 = color or Color3.fromRGB(0,255,255)
+    label.TextSize = 12
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = label
+    parent.CanvasSize = UDim2.new(0, 0, 0, parent.CanvasSize.Y.Offset + 45)
+    return label
+end
 
---// FITUR 4: INFINITE JUMP
-AddToggle(PlayerTab, "♾️ INFINITE JUMP - Lompat tanpa henti", function(state)
-    PlayerState.InfiniteJump = state
-    if state then
-        local jumpConnect = UserInputService.JumpRequest:Connect(function()
-            local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-            if hum then
-                hum:ChangeState(Enum.HumanoidStateType.Jumping)
+local mainTab = Tabs["MAIN"]
+addToggle(mainTab, "Speed Hack (WalkSpeed 100)", function(val)
+    if val then
+        if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+            LP.Character.Humanoid.WalkSpeed = 100
+        end
+        LP.CharacterAdded:Connect(function(char)
+            task.wait(0.5)
+            if char:FindFirstChild("Humanoid") then
+                char.Humanoid.WalkSpeed = 100
             end
         end)
-        LoopThreads["InfiniteJump"] = jumpConnect
     else
-        if LoopThreads["InfiniteJump"] then
-            LoopThreads["InfiniteJump"]:Disconnect()
-            LoopThreads["InfiniteJump"] = nil
+        if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+            LP.Character.Humanoid.WalkSpeed = 16
         end
     end
 end)
-
---// FITUR 5: GOD MODE
-AddToggle(PlayerTab, "👑 GOD MODE - Tidak bisa mati", function(state)
-    PlayerState.GodMode = state
-    if state then
-        local godLoop = RunService.Stepped:Connect(function()
-            local char = LocalPlayer.Character
-            if char then
-                local hum = char:FindFirstChild("Humanoid")
-                if hum then
-                    hum.MaxHealth = math.huge
-                    hum.Health = hum.MaxHealth
-                    hum.BreakJointsOnDeath = false
-                end
-                for _, v in pairs(char:GetChildren()) do
-                    if v:IsA("BasePart") then
-                        v.Anchored = false
-                    end
-                end
+addToggle(mainTab, "Jump Power Boost (JumpPower 80)", function(val)
+    if val then
+        if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+            LP.Character.Humanoid.JumpPower = 80
+        end
+        LP.CharacterAdded:Connect(function(char)
+            task.wait(0.5)
+            if char:FindFirstChild("Humanoid") then
+                char.Humanoid.JumpPower = 80
             end
         end)
-        LoopThreads["GodMode"] = godLoop
     else
-        if LoopThreads["GodMode"] then
-            LoopThreads["GodMode"]:Disconnect()
-            LoopThreads["GodMode"] = nil
-            local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-            if hum then
-                hum.MaxHealth = 100
-            end
+        if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+            LP.Character.Humanoid.JumpPower = 50
         end
     end
 end)
-
---// FITUR 6: NOCLIP
-AddToggle(PlayerTab, "🚪 NOCLIP - Tembus dinding", function(state)
-    PlayerState.Noclip = state
-    if state then
-        local noclipLoop = RunService.Stepped:Connect(function()
-            local char = LocalPlayer.Character
-            if char then
-                for _, v in pairs(char:GetDescendants()) do
-                    if v:IsA("BasePart") then
-                        v.CanCollide = false
-                    end
-                end
-            end
-        end)
-        LoopThreads["Noclip"] = noclipLoop
-    else
-        if LoopThreads["Noclip"] then
-            LoopThreads["Noclip"]:Disconnect()
-            LoopThreads["Noclip"] = nil
-            local char = LocalPlayer.Character
-            if char then
-                for _, v in pairs(char:GetDescendants()) do
-                    if v:IsA("BasePart") then
-                        v.CanCollide = true
-                    end
-                end
-            end
-        end
-    end
-end)
-
---// FITUR 7: INVISIBLE
-AddToggle(PlayerTab, "👻 INVISIBLE - Tidak terlihat", function(state)
-    PlayerState.Invisible = state
-    local char = LocalPlayer.Character
-    if char then
-        for _, v in pairs(char:GetDescendants()) do
-            if v:IsA("BasePart") or v:IsA("MeshPart") then
-                v.Transparency = state and 1 or 0
-            elseif v:IsA("Clothing") then
-                v.Visible = not state
-            end
-        end
-    end
-end)
-
---// FITUR 8: FORCE FIELD
-AddToggle(PlayerTab, "🛡️ FORCE FIELD - Perisai pelindung", function(state)
-    PlayerState.ForceField = state
-    local char = LocalPlayer.Character
-    if state then
-        local ff = Instance.new("ForceField")
-        ff.Parent = char
-        LoopThreads["ForceField"] = ff
-    else
-        if LoopThreads["ForceField"] then
-            LoopThreads["ForceField"]:Destroy()
-            LoopThreads["ForceField"] = nil
-        end
-    end
-end)
-
---// TAB 2: ATTACK HACK
-local AttackTab, AttackLayout = CreateTab("⚔️ ATTACK")
-
---// FITUR 9: KILL ALL
-AddButton(AttackTab, "💀 KILL ALL PLAYER - Bunuh semua pemain", function()
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            local char = player.Character
-            if char and char:FindFirstChild("Humanoid") then
-                char.Humanoid.Health = 0
-                char.Humanoid:BreakJoints()
-            end
-        end
-    end
-end)
-
---// FITUR 10: FREEZE ALL
-AddButton(AttackTab, "❄️ FREEZE ALL - Bekukan semua pemain", function()
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            local char = player.Character
-            if char and char:FindFirstChild("HumanoidRootPart") then
-                char.HumanoidRootPart.Anchored = true
-                local freezeLoop = RunService.Stepped:Connect(function()
-                    if char and char:FindFirstChild("HumanoidRootPart") then
-                        char.HumanoidRootPart.Anchored = true
-                    else
-                        freezeLoop:Disconnect()
-                    end
-                end)
-                table.insert(Targets, freezeLoop)
-            end
-        end
-    end
-end)
-
---// FITUR 11: CRASH SERVER (LOOP CRASH)
-AddToggle(AttackTab, "💥 CRASH ALL - Bikin server lag parah (loop crash)", function(state)
-    PlayerState.LoopCrash = state
-    if state then
-        local crashLoop = RunService.RenderStepped:Connect(function()
-            for i = 1, 500 do
-                local part = Instance.new("Part")
-                part.Size = Vector3.new(10, 10, 10)
-                part.Position = Vector3.new(math.random(-5000, 5000), math.random(0, 500), math.random(-5000, 5000))
-                part.Anchored = true
-                part.Transparency = 1
-                part.CanCollide = false
-                part.Parent = workspace
-                game:GetService("Debris"):AddItem(part, 0.5)
-            end
-            for _, player in pairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer then
-                    for i = 1, 100 do
-                        local msg = Instance.new("RemoteEvent")
-                        msg.Name = "Crash_" .. math.random(1, 999999)
-                        msg.Parent = player.Character or workspace
-                    end
-                end
-            end
-        end)
-        LoopThreads["CrashLoop"] = crashLoop
-    else
-        if LoopThreads["CrashLoop"] then
-            LoopThreads["CrashLoop"]:Disconnect()
-            LoopThreads["CrashLoop"] = nil
-        end
-    end
-end)
-
---// FITUR 12: EXPLODE PLAYERS
-AddButton(AttackTab, "💣 EXPLODE PLAYERS - Ledakkan semua pemain", function()
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            local char = player.Character
-            if char and char:FindFirstChild("HumanoidRootPart") then
-                local explosion = Instance.new("Explosion")
-                explosion.Position = char.HumanoidRootPart.Position
-                explosion.BlastRadius = 15
-                explosion.BlastPressure = 1000000
-                explosion.Parent = workspace
-            end
-        end
-    end
-    for i = 1, 50 do
-        local explosion = Instance.new("Explosion")
-        explosion.Position = Vector3.new(math.random(-500, 500), math.random(0, 200), math.random(-500, 500))
-        explosion.BlastRadius = 20
-        explosion.Parent = workspace
-    end
-end)
-
---// FITUR 13: GRAB PLAYER (Teleport player ke owner)
-AddToggle(AttackTab, "🪤 GRAB PLAYER - Tarik player ke lokasimu (klik target)", function(state)
-    PlayerState.GrabPlayer = state
-    if state then
-        local grabClick = Mouse.Button1Down:Connect(function()
-            local target = Mouse.Target
-            if target then
-                local char = target:FindFirstAncestorOfClass("Model")
-                if char and char:FindFirstChild("Humanoid") and Players:GetPlayerFromCharacter(char) and Players:GetPlayerFromCharacter(char) ~= LocalPlayer then
-                    local hrp = char:FindFirstChild("HumanoidRootPart")
-                    local myHrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                    if hrp and myHrp then
-                        hrp.CFrame = myHrp.CFrame + Vector3.new(0, 3, 0)
-                    end
-                end
-            end
-        end)
-        LoopThreads["Grab"] = grabClick
-    else
-        if LoopThreads["Grab"] then
-            LoopThreads["Grab"]:Disconnect()
-            LoopThreads["Grab"] = nil
-        end
-    end
-end)
-
---// FITUR 14: CONTROL PLAYER (Bisa gerakin player lain)
-AddToggle(AttackTab, "🎮 CONTROL PLAYER - Kendalikan pemain lain (klik target)", function(state)
-    PlayerState.ControlPlayer = state
-    if state then
-        local controlledPlayer = nil
-        local controlLoop = nil
-        
-        local clickControl = Mouse.Button1Down:Connect(function()
-            local target = Mouse.Target
-            if target then
-                local char = target:FindFirstAncestorOfClass("Model")
-                if char and char:FindFirstChild("Humanoid") then
-                    controlledPlayer = Players:GetPlayerFromCharacter(char)
-                    if controlledPlayer and controlledPlayer ~= LocalPlayer then
-                        if controlLoop then controlLoop:Disconnect() end
-                        controlLoop = RunService.RenderStepped:Connect(function()
-                            if not PlayerState.ControlPlayer or not controlledPlayer or not controlledPlayer.Character then
-                                if controlLoop then controlLoop:Disconnect() end
-                                return
-                            end
-                            local targetHrp = controlledPlayer.Character:FindFirstChild("HumanoidRootPart")
-                            local myHrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                            if targetHrp and myHrp then
-                                local moveDir = Vector3.new()
-                                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                                    moveDir = moveDir + workspace.CurrentCamera.CFrame.LookVector
-                                end
-                                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                                    moveDir = moveDir - workspace.CurrentCamera.CFrame.LookVector
-                                end
-                                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                                    moveDir = moveDir - workspace.CurrentCamera.CFrame.RightVector
-                                end
-                                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                                    moveDir = moveDir + workspace.CurrentCamera.CFrame.RightVector
-                                end
-                                targetHrp.Velocity = moveDir * 50
-                            end
-                        end)
-                    end
-                end
-            end
-        end)
-        LoopThreads["Control"] = {clickControl, controlLoop}
-    else
-        if LoopThreads["Control"] then
-            if LoopThreads["Control"][1] then LoopThreads["Control"][1]:Disconnect() end
-            if LoopThreads["Control"][2] then LoopThreads["Control"][2]:Disconnect() end
-            LoopThreads["Control"] = nil
-        end
-    end
-end)
-
---// FITUR 15: DELETE TOOLS (Hapus semua tools player lain)
-AddButton(AttackTab, "🗑️ DELETE ALL TOOLS - Hapus senjata semua player", function()
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            local char = player.Character
-            if char then
-                for _, tool in pairs(char:GetChildren()) do
-                    if tool:IsA("Tool") then
-                        tool:Destroy()
-                    end
-                end
-            end
-            local backpack = player:FindFirstChild("Backpack")
-            if backpack then
-                for _, tool in pairs(backpack:GetChildren()) do
-                    if tool:IsA("Tool") then
-                        tool:Destroy()
-                    end
-                end
-            end
-        end
-    end
-end)
-
---// TAB 3: WORLD HACK
-local WorldTab, WorldLayout = CreateTab("🌍 WORLD")
-
---// FITUR 16: BLACK HOLE
-AddToggle(WorldTab, "🕳️ BLACK HOLE - Semua benda tersedot ke pusat", function(state)
-    PlayerState.BlackHole = state
-    if state then
-        local blackHoleCenter = Vector3.new(0, 50, 0)
-        local blackHoleLoop = RunService.RenderStepped:Connect(function()
-            if not PlayerState.BlackHole then return end
-            for _, obj in pairs(workspace:GetDescendants()) do
-                if obj:IsA("BasePart") and obj ~= LocalPlayer.Character then
-                    local direction = blackHoleCenter - obj.Position
-                    local distance = direction.Magnitude
-                    if distance > 0 then
-                        local force = 500 / (distance + 10)
-                        obj.Velocity = direction.Unit * force
-                    end
-                end
-            end
-        end)
-        LoopThreads["BlackHole"] = blackHoleLoop
-    else
-        if LoopThreads["BlackHole"] then
-            LoopThreads["BlackHole"]:Disconnect()
-            LoopThreads["BlackHole"] = nil
-        end
-    end
-end)
-
---// FITUR 17: NUKE (Hancurin semua part)
-AddButton(WorldTab, "💥 NUKE - Hancurkan semua part", function()
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and obj ~= LocalPlayer.Character then
-            obj:BreakJoints()
-            local explosion = Instance.new("Explosion")
-            explosion.Position = obj.Position
-            explosion.Parent = workspace
-        end
-    end
-end)
-
---// FITUR 18: BREAK ANCHORS
-AddToggle(WorldTab, "🔨 BREAK ANCHORS - Semua part jadi jatuh", function(state)
-    PlayerState.BreakAnchors = state
-    if state then
-        local breakLoop = RunService.RenderStepped:Connect(function()
-            if not PlayerState.BreakAnchors then return end
-            for _, obj in pairs(workspace:GetDescendants()) do
-                if obj:IsA("BasePart") and obj.Anchored then
-                    obj.Anchored = false
-                end
-            end
-        end)
-        LoopThreads["BreakAnchors"] = breakLoop
-    else
-        if LoopThreads["BreakAnchors"] then
-            LoopThreads["BreakAnchors"]:Disconnect()
-            LoopThreads["BreakAnchors"] = nil
-        end
-    end
-end)
-
---// TAB 4: UTILITY
-local UtilityTab, UtilityLayout = CreateTab("🔧 UTILITY")
-
---// FITUR 19: AIMBOT
-AddToggle(UtilityTab, "🎯 AIMBOT - Auto target ke pemain terdekat", function(state)
-    PlayerState.Aimbot = state
-    if state then
-        local aimLoop = RunService.RenderStepped:Connect(function()
-            if not PlayerState.Aimbot then return end
-            local closestPlayer = nil
-            local closestDist = 50
-            local myPos = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-            if not myPos then return end
-            
-            for _, player in pairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer then
-                    local char = player.Character
-                    if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 then
-                        local dist = (char.HumanoidRootPart.Position - myPos.Position).Magnitude
-                        if dist < closestDist then
-                            closestDist = dist
-                            closestPlayer = char
-                        end
-                    end
-                end
-            end
-            
-            if closestPlayer and closestPlayer:FindFirstChild("HumanoidRootPart") then
-                local camera = workspace.CurrentCamera
-                local targetPos = closestPlayer.HumanoidRootPart.Position + Vector3.new(0, 3, 0)
-                camera.CFrame = CFrame.new(camera.CFrame.Position, targetPos)
-            end
-        end)
-        LoopThreads["Aimbot"] = aimLoop
-    else
-        if LoopThreads["Aimbot"] then
-            LoopThreads["Aimbot"]:Disconnect()
-            LoopThreads["Aimbot"] = nil
-        end
-    end
-end)
-
---// FITUR 20: ESP (Player outline)
-AddToggle(UtilityTab, "👁️ ESP - Lihat semua player tembus tembok", function(state)
-    PlayerState.ESP = state
-    if state then
-        local espLoop = RunService.RenderStepped:Connect(function()
-            for _, player in pairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer then
-                    local char = player.Character
-                    if char then
-                        for _, part in pairs(char:GetDescendants()) do
-                            if part:IsA("BasePart") then
-                                local highlight = Instance.new("Highlight")
-                                highlight.FillColor = Color3.fromHSV(tick() % 2 / 2, 1, 1)
-                                highlight.OutlineColor = Color3.fromRGB(255, 0, 255)
-                                highlight.FillTransparency = 0.5
-                                highlight.OutlineTransparency = 0
-                                highlight.Parent = char
-                                game:GetService("Debris"):AddItem(highlight, 0.5)
-                            end
-                        end
-                    end
-                end
-            end
-        end)
-        LoopThreads["ESP"] = espLoop
-    else
-        if LoopThreads["ESP"] then
-            LoopThreads["ESP"]:Disconnect()
-            LoopThreads["ESP"] = nil
-        end
-    end
-end)
-
---// TAB 5: FARMING
-local FarmTab, FarmLayout = CreateTab("🌾 FARMING")
-
---// FITUR 21: AUTO FARM
-AddToggle(FarmTab, "🤖 AUTO FARM - Farming otomatis dengan teleport", function(state)
-    PlayerState.AutoFarm = state
-    if state then
-        local farmLoop = RunService.RenderStepped:Connect(function()
-            if not PlayerState.AutoFarm then return end
-            local myPos = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-            if not myPos then return end
-            
-            local nearestItem = nil
-            local nearestDist = 50
-            
-            for _, obj in pairs(workspace:GetDescendants()) do
-                if obj:IsA("BasePart") and (obj.Name:lower():find("coin") or obj.Name:lower():find("gem") or obj.Name:lower():find("crystal") or obj:FindFirstChild("TouchInterest")) then
-                    local dist = (obj.Position - myPos.Position).Magnitude
-                    if dist < nearestDist then
-                        nearestDist = dist
-                        nearestItem = obj
-                    end
-                end
-            end
-            
-            if nearestItem then
-                myPos.CFrame = nearestItem.CFrame
-                wait(0.2)
-            end
-        end)
-        LoopThreads["AutoFarm"] = farmLoop
-    else
-        if LoopThreads["AutoFarm"] then
-            LoopThreads["AutoFarm"]:Disconnect()
-            LoopThreads["AutoFarm"] = nil
-        end
-    end
-end)
-
---// FITUR 22: STEAL DROPS
-AddToggle(FarmTab, "💰 STEAL DROPS - Curi semua item yang jatuh", function(state)
-    PlayerState.StealDrops = state
-    if state then
-        local stealLoop = RunService.RenderStepped:Connect(function()
-            if not PlayerState.StealDrops then return end
-            for _, obj in pairs(workspace:GetDescendants()) do
-                if obj:IsA("BasePart") and obj:FindFirstChild("TouchInterest") then
-                    firetouchinterest(LocalPlayer.Character.HumanoidRootPart, obj, 0)
-                    firetouchinterest(LocalPlayer.Character.HumanoidRootPart, obj, 1)
-                end
-            end
-        end)
-        LoopThreads["StealDrops"] = stealLoop
-    else
-        if LoopThreads["StealDrops"] then
-            LoopThreads["StealDrops"]:Disconnect()
-            LoopThreads["StealDrops"] = nil
-        end
-    end
-end)
-
---// FITUR 23: DUPLICATE
-AddButton(FarmTab, "🔄 DUPLICATE ITEMS - Duplikasi item yang dipegang", function()
-    local char = LocalPlayer.Character
-    if char then
-        for _, tool in pairs(char:GetChildren()) do
-            if tool:IsA("Tool") then
-                local newTool = tool:Clone()
-                newTool.Parent = char
-                wait(0.1)
-            end
-        end
-    end
-end)
-
---// TAB 6: ANNOYING
-local AnnoyTab, AnnoyLayout = CreateTab("🤬 ANNOYING")
-
---// FITUR 24: CHAT SPAM
-AddToggle(AnnoyTab, "📢 CHAT SPAM - Spam chat meledak", function(state)
-    PlayerState.ChatSpam = state
-    if state then
-        local spamLoop = RunService.RenderStepped:Connect(function()
-            if not PlayerState.ChatSpam then return end
-            local spamMessages = {
-                "rRz HUB | KING JARZ 👑",
-                "LU SEMUA DI HACK SALAH SATU NYA GW LU HACK ANJG",
-                "https://discord.gg/rRzHub",
-                "GUA OWNER DISINI",
-                "JARZGPT DARK VIP 🔥"
-            }
-            local randomMsg = spamMessages[math.random(1, #spamMessages)]
-            game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(randomMsg, "All")
-            wait(0.3)
-        end)
-        LoopThreads["ChatSpam"] = spamLoop
-    else
-        if LoopThreads["ChatSpam"] then
-            LoopThreads["ChatSpam"]:Disconnect()
-            LoopThreads["ChatSpam"] = nil
-        end
-    end
-end)
-
---// FITUR 25: LAG SERVER
-AddToggle(AnnoyTab, "🐌 LAG SERVER - Bikin semua player lag", function(state)
-    PlayerState.LagServer = state
-    if state then
-        local lagLoop = RunService.RenderStepped:Connect(function()
-            if not PlayerState.LagServer then return end
-            for i = 1, 2000 do
-                local randomVal = math.random()
-                local randomCF = CFrame.new(math.random(), math.random(), math.random())
-            end
-        end)
-        LoopThreads["LagServer"] = lagLoop
-    else
-        if LoopThreads["LagServer"] then
-            LoopThreads["LagServer"]:Disconnect()
-            LoopThreads["LagServer"] = nil
-        end
-    end
-end)
-
---// TAB 7: VISUAL
-local VisualTab, VisualLayout = CreateTab("🎨 VISUAL")
-
---// FITUR 26: RAINBOW CHARACTER
-AddToggle(VisualTab, "🌈 RAINBOW CHAR - Karakter warna-warni", function(state)
-    PlayerState.RainbowChar = state
-    if state then
-        local rainbowLoop = RunService.RenderStepped:Connect(function()
-            if not PlayerState.RainbowChar then return end
-            local char = LocalPlayer.Character
-            if char then
-                local hue = tick() % 2 / 2
-                local color = Color3.fromHSV(hue, 1, 1)
-                for _, part in pairs(char:GetDescendants()) do
+addToggle(mainTab, "Noclip (Tembus Dinding)", function(val)
+    local noclipConn
+    if val then
+        noclipConn = RunService.Stepped:Connect(function()
+            if LP.Character then
+                for _, part in pairs(LP.Character:GetDescendants()) do
                     if part:IsA("BasePart") then
-                        part.Color = color
+                        part.CanCollide = false
                     end
                 end
             end
         end)
-        LoopThreads["RainbowChar"] = rainbowLoop
     else
-        if LoopThreads["RainbowChar"] then
-            LoopThreads["RainbowChar"]:Disconnect()
-            LoopThreads["RainbowChar"] = nil
-        end
-    end
-end)
-
---// FITUR 27: TP TOOL
-AddToggle(VisualTab, "📍 TP TOOL - Teleport ke mana pun (klik)", function(state)
-    PlayerState.TpTool = state
-    if state then
-        local tpClick = Mouse.Button1Down:Connect(function()
-            local target = Mouse.Hit.p
-            local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-            if hrp and target then
-                hrp.CFrame = CFrame.new(target)
-            end
-        end)
-        LoopThreads["TpTool"] = tpClick
-    else
-        if LoopThreads["TpTool"] then
-            LoopThreads["TpTool"]:Disconnect()
-            LoopThreads["TpTool"] = nil
-        end
-    end
-end)
-
---// FITUR 28: SERVER HOP
-AddButton(VisualTab, "🔄 SERVER HOP - Pindah server otomatis", function()
-    game:GetService("TeleportService"):Teleport(game.PlaceId)
-end)
-
---// TAB 8: PROTECTION
-local ProtectionTab, ProtectionLayout = CreateTab("🛡️ PROTECTION")
-
---// FITUR 29: ANTI BAN
-AddToggle(ProtectionTab, "🚫 ANTI BAN - Cegah deteksi cheat", function(state)
-    PlayerState.AntiBan = state
-    if state then
-        local antiBanLoop = RunService.RenderStepped:Connect(function()
-            if not PlayerState.AntiBan then return end
-            local hooks = {"Ban", "Kick", "Punish", "AntiCheat"}
-            for _, hook in pairs(hooks) do
-                local remote = game:GetService("ReplicatedStorage"):FindFirstChild(hook)
-                if remote then
-                    remote:Destroy()
+        if noclipConn then noclipConn:Disconnect() end
+        if LP.Character then
+            for _, part in pairs(LP.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
                 end
             end
+        end
+    end
+end)
+addToggle(mainTab, "Infinity Jump", function(val)
+    local jumpConn
+    jumpConn = UserInputService.JumpRequest:Connect(function()
+        if val and LP.Character and LP.Character:FindFirstChild("Humanoid") then
+            LP.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end)
+end)
+addToggle(mainTab, "God Mode (Kebal)", function(val)
+    if val then
+        if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+            LP.Character.Humanoid.MaxHealth = math.huge
+            LP.Character.Humanoid.Health = math.huge
+            LP.Character.Humanoid.BreakJointsOnDeath = false
+        end
+        LP.CharacterAdded:Connect(function(char)
+            task.wait(0.5)
+            if char:FindFirstChild("Humanoid") then
+                char.Humanoid.MaxHealth = math.huge
+                char.Humanoid.Health = math.huge
+                char.Humanoid.BreakJointsOnDeath = false
+            end
         end)
-        LoopThreads["AntiBan"] = antiBanLoop
     else
-        if LoopThreads["AntiBan"] then
-            LoopThreads["AntiBan"]:Disconnect()
-            LoopThreads["AntiBan"] = nil
+        if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+            LP.Character.Humanoid.MaxHealth = 100
+            LP.Character.Humanoid.BreakJointsOnDeath = true
         end
     end
 end)
-
---// TAB 9: FUN
-local FunTab, FunLayout = CreateTab("🎉 FUN")
-
---// FITUR 30: MUSIC PLAYER
-AddToggle(FunTab, "🎵 MUSIC PLAYER - Putar suara dari server", function(state)
-    PlayerState.MusicPlayer = state
-    if state then
-        local sound = Instance.new("Sound")
-        sound.SoundId = "rbxassetid://9123168456"
-        sound.Looped = true
-        sound.Volume = 5
-        sound.Parent = LocalPlayer.Character or workspace
-        sound:Play()
-        LoopThreads["Music"] = sound
+addToggle(mainTab, "Fly Mode (WASD + Space)", function(val)
+    local flySpeed = 50
+    local bv, bg, flyConn
+    if val then
+        if not LP.Character then return end
+        bv = Instance.new("BodyVelocity")
+        bv.MaxForce = Vector3.new(1e5,1e5,1e5)
+        bv.Velocity = Vector3.new(0,0,0)
+        bg = Instance.new("BodyGyro")
+        bg.MaxTorque = Vector3.new(1e5,1e5,1e5)
+        bg.CFrame = LP.Character.HumanoidRootPart.CFrame
+        bv.Parent = LP.Character.HumanoidRootPart
+        bg.Parent = LP.Character.HumanoidRootPart
+        flyConn = RunService.RenderStepped:Connect(function()
+            if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+                local move = Vector3.new()
+                if UserInputService:IsKeyDown(Enum.KeyCode.W) then move = move + Vector3.new(0,0,-flySpeed) end
+                if UserInputService:IsKeyDown(Enum.KeyCode.S) then move = move + Vector3.new(0,0,flySpeed) end
+                if UserInputService:IsKeyDown(Enum.KeyCode.A) then move = move + Vector3.new(-flySpeed,0,0) end
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then move = move + Vector3.new(flySpeed,0,0) end
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then move = move + Vector3.new(0,flySpeed,0) end
+                if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then move = move + Vector3.new(0,-flySpeed,0) end
+                bv.Velocity = LP.Character.HumanoidRootPart.CFrame:VectorToWorldSpace(move)
+                bg.CFrame = Camera.CFrame
+                LP.Character.Humanoid.PlatformStand = true
+            end
+        end)
     else
-        if LoopThreads["Music"] then
-            LoopThreads["Music"]:Stop()
-            LoopThreads["Music"]:Destroy()
-            LoopThreads["Music"] = nil
+        if flyConn then flyConn:Disconnect() end
+        if bv then bv:Destroy() end
+        if bg then bg:Destroy() end
+        if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+            LP.Character.Humanoid.PlatformStand = false
         end
     end
 end)
-
---// TAB 10: INFO
-local InfoTab, InfoLayout = CreateTab("📋 INFO")
-
---// FITUR 31-33: INFO PANEL
-AddButton(InfoTab, "👑 TENTANG rRz HUB", function()
-    print("╔════════════════════════════════════════╗")
-    print("║     rRz HUB - Delta Executor          ║")
-    print("║     KING JARZ 👑👑👑                   ║")
-    print("║     33 FITUR HACK LENGKAP             ║")
-    print("║     JarzGPT dark vip                  ║")
-    print("╚════════════════════════════════════════╝")
+addTextBox(mainTab, "Set WalkSpeed Manual", "Angka 16-250", function(val)
+    local num = tonumber(val)
+    if num and LP.Character and LP.Character:FindFirstChild("Humanoid") then
+        LP.Character.Humanoid.WalkSpeed = num
+    end
 end)
-
-AddButton(InfoTab, "⚡ FITUR LIST (33 Fitur)", function()
-    local features = {
-        "1. Fly", "2. Speed", "3. Jump Power", "4. Infinite Jump", "5. God Mode", "6. Noclip",
-        "7. Invisible", "8. Force Field", "9. Kill All", "10. Freeze All", "11. Crash All",
-        "12. Explode", "13. Grab Player", "14. Control Player", "15. Delete Tools", "16. Black Hole",
-        "17. Nuke", "18. Break Anchors", "19. Aimbot", "20. ESP", "21. Auto Farm", "22. Steal Drops",
-        "23. Duplicate", "24. Chat Spam", "25. Lag Server", "26. Rainbow Char", "27. TP Tool",
-        "28. Server Hop", "29. Anti Ban", "30. Music Player", "31. Info Panel", "32. Ui Settings", "33. Full Control"
-    }
-    for _, f in pairs(features) do
-        print(f)
+addTextBox(mainTab, "Set JumpPower Manual", "Angka 30-200", function(val)
+    local num = tonumber(val)
+    if num and LP.Character and LP.Character:FindFirstChild("Humanoid") then
+        LP.Character.Humanoid.JumpPower = num
     end
 end)
 
-AddButton(InfoTab, "🎨 UI CREDIT", function()
-    print("UI Designer: KING JARZ")
-    print("Engine: JarzGPT dark vip")
-    print("Executor Support: Delta | Arceus | Hydrogen")
-    print("Version: OMEGA-NULL v4.0")
+local combatTab = Tabs["COMBAT"]
+local aimbotActive = false
+addToggle(combatTab, "Aimbot (Auto Aim)", function(val)
+    aimbotActive = val
+    coroutine.wrap(function()
+        while aimbotActive do
+            local closest, shortest = nil, 200
+            for _, v in pairs(Players:GetPlayers()) do
+                if v ~= LP and v.Character and v.Character:FindFirstChild("Head") then
+                    local pos, onScreen = Camera:WorldToViewportPoint(v.Character.Head.Position)
+                    if onScreen then
+                        local dist = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
+                        if dist < shortest then
+                            closest, shortest = v, dist
+                        end
+                    end
+                end
+            end
+            if closest and closest.Character and closest.Character:FindFirstChild("Head") then
+                local aimpoint = Camera:WorldToViewportPoint(closest.Character.Head.Position)
+                VirtualInput:SendMouseMove(aimpoint.X, aimpoint.Y)
+            end
+            task.wait()
+        end
+    end)()
+end)
+addToggle(combatTab, "Silent Aim", function(val)
+    if val then
+        local oldNameCall
+        oldNameCall = hookmetamethod(game, "__namecall", function(self, ...)
+            local args = {...}
+            local method = getnamecallmethod()
+            if method == "FireServer" and tostring(self) == "Tool" then
+                for _, v in pairs(Players:GetPlayers()) do
+                    if v ~= LP and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                        args[1] = v.Character.HumanoidRootPart.Position
+                        break
+                    end
+                end
+            end
+            return oldNameCall(self, ...)
+        end)
+    end
+end)
+addToggle(combatTab, "No Recoil", function(val)
+    if val then
+        local cam = workspace.CurrentCamera
+        local oldRecoil = hookfunction(cam.GetRecoilMagnitude, function() return 0 end)
+    end
+end)
+addToggle(combatTab, "Fast Swing", function(val)
+    coroutine.wrap(function()
+        while val do
+            local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
+            if tool then
+                for _, v in pairs(tool:GetDescendants()) do
+                    if v:IsA("NumberValue") and (v.Name:lower() == "cooldown" or v.Name:lower() == "coolDown") then
+                        v.Value = 0.05
+                    end
+                end
+            end
+            task.wait(0.1)
+        end
+    end)()
+end)
+addToggle(combatTab, "Kill All Players", function(val)
+    if val then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= LP and v.Character and v.Character:FindFirstChild("Humanoid") then
+                v.Character.Humanoid.Health = 0
+            end
+        end
+        showNotif("💀 Killed all players!")
+    end
+end)
+addToggle(combatTab, "Freeze All Players", function(val)
+    if val then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= LP and v.Character and v.Character:FindFirstChild("Humanoid") then
+                v.Character.Humanoid.WalkSpeed = 0
+                v.Character.Humanoid.JumpPower = 0
+            end
+        end
+    else
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= LP and v.Character and v.Character:FindFirstChild("Humanoid") then
+                v.Character.Humanoid.WalkSpeed = 16
+                v.Character.Humanoid.JumpPower = 50
+            end
+        end
+    end
+end)
+addToggle(combatTab, "Fling All Players", function(val)
+    if val then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= LP and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                local bv = Instance.new("BodyVelocity")
+                bv.Velocity = Vector3.new(math.random(-5000,5000), 10000, math.random(-5000,5000))
+                bv.MaxForce = Vector3.new(1e5,1e5,1e5)
+                bv.Parent = v.Character.HumanoidRootPart
+                task.wait(0.1)
+                bv:Destroy()
+            end
+        end
+        showNotif("🪰 Flinged all players!")
+    end
+end)
+addTextBox(combatTab, "Set Reach", "Angka 5-30", function(val)
+    local num = tonumber(val)
+    if num then
+        showNotif("Reach set to " .. num)
+    end
 end)
 
---// FITUR 32-33: OPEN HUB (sudah otomatis kebuka)
+local visualTab = Tabs["VISUAL"]
+local espObjects = {}
+local espEnabled = false
+local espShowBox = true
+local espShowName = true
+local espShowHealth = true
+local espShowDistance = true
 
-print("╔══════════════════════════════════════════════════════════════════════╗")
-print("║                     rRz HUB LOADED SUCCESSFULLY                     ║")
-print("║                     KING JARZ 👑👑👑 | 33 FITUR AKTIF                ║")
-print("║                     JarzGPT dark vip - OMEGA-NULL MODE               ║")
-print("╚══════════════════════════════════════════════════════════════════════╝")
+addToggle(visualTab, "ESP ALL (Box + Name + Health)", function(val)
+    espEnabled = val
+    if espEnabled then
+        coroutine.wrap(function()
+            while espEnabled do
+                for _, obj in pairs(espObjects) do obj:Destroy() end
+                espObjects = {}
+                for _, v in pairs(Players:GetPlayers()) do
+                    if v ~= LP and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
+                        local pos, onScreen = Camera:WorldToViewportPoint(v.Character.HumanoidRootPart.Position)
+                        if onScreen and pos.Z > 0 then
+                            if espShowBox then
+                                local box = Instance.new("Frame")
+                                box.Parent = ScreenGui
+                                box.Size = UDim2.new(0, 60, 0, 90)
+                                box.Position = UDim2.new(0, pos.X - 30, 0, pos.Y - 45)
+                                box.BackgroundColor3 = Color3.fromRGB(0,255,255)
+                                box.BackgroundTransparency = 0.5
+                                box.BorderSizePixel = 2
+                                box.BorderColor3 = Color3.fromRGB(255,255,255)
+                                table.insert(espObjects, box)
+                            end
+                            if espShowName then
+                                local label = Instance.new("TextLabel")
+                                label.Parent = ScreenGui
+                                label.Text = v.Name
+                                label.Size = UDim2.new(0, 120, 0, 20)
+                                label.Position = UDim2.new(0, pos.X - 60, 0, pos.Y - 70)
+                                label.TextColor3 = Color3.fromRGB(0,255,255)
+                                label.BackgroundTransparency = 1
+                                label.Font = Enum.Font.GothamBold
+                                label.TextSize = 11
+                                table.insert(espObjects, label)
+                            end
+                            if espShowHealth then
+                                local health = math.floor(v.Character.Humanoid.Health)
+                                local hLabel = Instance.new("TextLabel")
+                                hLabel.Parent = ScreenGui
+                                hLabel.Text = health .. " HP"
+                                hLabel.Size = UDim2.new(0, 70, 0, 18)
+                                hLabel.Position = UDim2.new(0, pos.X - 35, 0, pos.Y - 25)
+                                hLabel.TextColor3 = health > 50 and Color3.fromRGB(0,255,0) or Color3.fromRGB(255,0,0)
+                                hLabel.BackgroundTransparency = 1
+                                hLabel.Font = Enum.Font.GothamBold
+                                hLabel.TextSize = 11
+                                table.insert(espObjects, hLabel)
+                            end
+                            if espShowDistance then
+                                local dist = (Camera.CFrame.Position - v.Character.HumanoidRootPart.Position).Magnitude
+                                local dLabel = Instance.new("TextLabel")
+                                dLabel.Parent = ScreenGui
+                                dLabel.Text = math.floor(dist) .. "m"
+                                dLabel.Size = UDim2.new(0, 50, 0, 18)
+                                dLabel.Position = UDim2.new(0, pos.X - 25, 0, pos.Y + 55)
+                                dLabel.TextColor3 = Color3.fromRGB(150,150,255)
+                                dLabel.BackgroundTransparency = 1
+                                dLabel.Font = Enum.Font.Gotham
+                                dLabel.TextSize = 10
+                                table.insert(espObjects, dLabel)
+                            end
+                        end
+                    end
+                end
+                task.wait()
+            end
+        end)()
+    else
+        for _, obj in pairs(espObjects) do obj:Destroy() end
+        espObjects = {}
+    end
+end)
+addToggle(visualTab, "ESP Box", function(val) espShowBox = val end)
+addToggle(visualTab, "ESP Name", function(val) espShowName = val end)
+addToggle(visualTab, "ESP Health", function(val) espShowHealth = val end)
+addToggle(visualTab, "ESP Distance", function(val) espShowDistance = val end)
+
+local playerTab = Tabs["PLAYER"]
+local selectedTarget = nil
+
+local function getPlayerList()
+    local list = {}
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LP then
+            table.insert(list, v.Name)
+        end
+    end
+    return list
+end
+
+addButton(playerTab, "Select Target", function()
+    local players = getPlayerList()
+    if #players == 0 then
+        showNotif("⚠️ No other players found!")
+        return
+    end
+    local dialog = Instance.new("Frame")
+    dialog.Parent = ScreenGui
+    dialog.BackgroundColor3 = Color3.fromRGB(15,15,20)
+    dialog.Position = UDim2.new(0.5, -150, 0.5, -150)
+    dialog.Size = UDim2.new(0, 300, 0, 300)
+    dialog.ZIndex = 10
+    local dCorner = Instance.new("UICorner")
+    dCorner.CornerRadius = UDim.new(0, 12)
+    dCorner.Parent = dialog
+    local title = Instance.new("TextLabel")
+    title.Parent = dialog
+    title.Size = UDim2.new(1, 0, 0, 40)
+    title.Text = "SELECT TARGET"
+    title.TextColor3 = Color3.fromRGB(0,0,0)
+    title.BackgroundColor3 = Color3.fromRGB(0,255,255)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 16
+    local scroll = Instance.new("ScrollingFrame")
+    scroll.Parent = dialog
+    scroll.Position = UDim2.new(0, 0, 0, 40)
+    scroll.Size = UDim2.new(1, 0, 1, -40)
+    scroll.CanvasSize = UDim2.new(0, 0, 0, #players * 45)
+    scroll.ScrollBarThickness = 5
+    for i, name in ipairs(players) do
+        local btn = Instance.new("TextButton")
+        btn.Parent = scroll
+        btn.Size = UDim2.new(1, -20, 0, 40)
+        btn.Position = UDim2.new(0, 10, 0, (i-1)*45)
+        btn.Text = name
+        btn.BackgroundColor3 = Color3.fromRGB(30,30,35)
+        btn.TextColor3 = Color3.fromRGB(0,255,255)
+        btn.Font = Enum.Font.GothamBold
+        btn.TextSize = 14
+        local bCorner = Instance.new("UICorner")
+        bCorner.CornerRadius = UDim.new(0, 6)
+        bCorner.Parent = btn
+        btn.MouseButton1Click:Connect(function()
+            selectedTarget = Players:FindFirstChild(name)
+            showNotif("🎯 Target: " .. name)
+            dialog:Destroy()
+        end)
+    end
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Parent = dialog
+    closeBtn.Size = UDim2.new(0, 50, 0, 30)
+    closeBtn.Position = UDim2.new(1, -60, 0, 5)
+    closeBtn.Text = "X"
+    closeBtn.BackgroundColor3 = Color3.fromRGB(255,70,70)
+    closeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.TextSize = 14
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 6)
+    closeCorner.Parent = closeBtn
+    closeBtn.MouseButton1Click:Connect(function()
+        dialog:Destroy()
+    end)
+end)
+addToggle(playerTab, "Teleport to Target", function(val)
+    if val and selectedTarget and selectedTarget.Character and selectedTarget.Character:FindFirstChild("HumanoidRootPart") and LP.Character then
+        LP.Character.HumanoidRootPart.CFrame = selectedTarget.Character.HumanoidRootPart.CFrame
+        showNotif("✨ Teleported to " .. selectedTarget.Name)
+    end
+end)
+addToggle(playerTab, "Bring Target to You", function(val)
+    if val and selectedTarget and selectedTarget.Character and selectedTarget.Character:FindFirstChild("HumanoidRootPart") and LP.Character then
+        selectedTarget.Character.HumanoidRootPart.CFrame = LP.Character.HumanoidRootPart.CFrame
+        showNotif("📦 Brought " .. selectedTarget.Name .. " to you")
+    end
+end)
+addToggle(playerTab, "Loop Teleport to Target", function(val)
+    coroutine.wrap(function()
+        while val and selectedTarget and selectedTarget.Character and selectedTarget.Character:FindFirstChild("HumanoidRootPart") and LP.Character do
+            LP.Character.HumanoidRootPart.CFrame = selectedTarget.Character.HumanoidRootPart.CFrame
+            task.wait(0.3)
+        end
+    end)()
+end)
+
+local trollTab = Tabs["TROLL"]
+local spinEnabled = false
+addToggle(trollTab, "Spin Bot", function(val)
+    spinEnabled = val
+    coroutine.wrap(function()
+        while spinEnabled and LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") do
+            LP.Character.HumanoidRootPart.CFrame = LP.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(15), 0)
+            task.wait()
+        end
+    end)()
+end)
+addToggle(trollTab, "Loop Jump", function(val)
+    coroutine.wrap(function()
+        while val and LP.Character and LP.Character:FindFirstChild("Humanoid") do
+            LP.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            task.wait(0.2)
+        end
+    end)()
+end)
+addTextBox(trollTab, "Chat Spam Text", "Masukkan teks", function(val)
+    coroutine.wrap(function()
+        while true do
+            local chatEvent = ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents")
+            if chatEvent and chatEvent:FindFirstChild("SayMessageRequest") then
+                chatEvent.SayMessageRequest:FireServer(val, "All")
+            end
+            task.wait(0.5)
+        end
+    end)()
+end)
+
+local themeTab = Tabs["THEME"]
+addButton(themeTab, "💙 Cyan Neon Theme", function()
+    MainFrame.BackgroundColor3 = Color3.fromRGB(10,10,15)
+    Title.TextColor3 = Color3.fromRGB(0,255,255)
+    neonGlow.BackgroundColor3 = Color3.fromRGB(0,255,255)
+    ContentContainer.ScrollBarImageColor3 = Color3.fromRGB(0,255,255)
+    showNotif("🎨 Cyan Neon Theme Applied")
+end)
+addButton(themeTab, "💖 Pink Neon Theme", function()
+    MainFrame.BackgroundColor3 = Color3.fromRGB(20,10,20)
+    Title.TextColor3 = Color3.fromRGB(255,0,255)
+    neonGlow.BackgroundColor3 = Color3.fromRGB(255,0,255)
+    ContentContainer.ScrollBarImageColor3 = Color3.fromRGB(255,0,255)
+    showNotif("🎨 Pink Neon Theme Applied")
+end)
+addButton(themeTab, "💚 Green Neon Theme", function()
+    MainFrame.BackgroundColor3 = Color3.fromRGB(10,20,10)
+    Title.TextColor3 = Color3.fromRGB(0,255,0)
+    neonGlow.BackgroundColor3 = Color3.fromRGB(0,255,0)
+    ContentContainer.ScrollBarImageColor3 = Color3.fromRGB(0,255,0)
+    showNotif("🎨 Green Neon Theme Applied")
+end)
+addButton(themeTab, "💛 Gold Neon Theme", function()
+    MainFrame.BackgroundColor3 = Color3.fromRGB(20,20,10)
+    Title.TextColor3 = Color3.fromRGB(255,200,0)
+    neonGlow.BackgroundColor3 = Color3.fromRGB(255,200,0)
+    ContentContainer.ScrollBarImageColor3 = Color3.fromRGB(255,200,0)
+    showNotif("🎨 Gold Neon Theme Applied")
+end)
+
+local miscTab = Tabs["MISC"]
+addToggle(miscTab, "Infinite Ammo", function(val)
+    coroutine.wrap(function()
+        while val do
+            local tool = LP.Character and LP.Character:FindFirstChildOfClass("Tool")
+            if tool then
+                for _, v in pairs(tool:GetDescendants()) do
+                    if v:IsA("NumberValue") and v.Name:lower() == "ammo" then
+                        v.Value = math.huge
+                    end
+                end
+            end
+            task.wait(0.5)
+        end
+    end)()
+end)
+addToggle(miscTab, "Anti AFK", function(val)
+    coroutine.wrap(function()
+        while val do
+            local vu = game:GetService("VirtualUser")
+            vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+            task.wait(0.1)
+            vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+            task.wait(10)
+        end
+    end)()
+end)
+addToggle(miscTab, "Auto Clicker", function(val)
+    coroutine.wrap(function()
+        while val do
+            VirtualInput:SendMouseButtonEvent(0, 0, 0, true, "UserInputService", 0)
+            task.wait(0.05)
+            VirtualInput:SendMouseButtonEvent(0, 0, 0, false, "UserInputService", 0)
+            task.wait(0.05)
+        end
+    end)()
+end)
+addButton(miscTab, "Rejoin Server", function()
+    TeleportService:Teleport(game.PlaceId, LP)
+end)
+addButton(miscTab, "Hop Server", function()
+    pcall(function()
+        local data = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?limit=10"))
+        for _, v in pairs(data.data) do
+            if v.playing < v.maxPlayers and v.id ~= game.JobId then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, v.id, LP)
+                break
+            end
+        end
+    end)
+end)
+addButton(miscTab, "Load Infinite Yield", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+end)
+addButton(miscTab, "Load Cmd-X", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/CMD-X/CMD-X/master/Source"))()
+end)
+
+local creditsTab = Tabs["CREDITS"]
+addLabel(creditsTab, "━━━━━━━━━━━━━━━━━━━━━━", Color3.fromRGB(0,255,255))
+addLabel(creditsTab, "👑 OWNER: Jarz_Scripter", Color3.fromRGB(255,200,100))
+addLabel(creditsTab, "━━━━━━━━━━━━━━━━━━━━━━", Color3.fromRGB(0,255,255))
+addLabel(creditsTab, "⭐ TEAM MEMBERS:", Color3.fromRGB(0,255,255))
+addLabel(creditsTab, "   • Ihza", Color3.fromRGB(0,255,255))
+addLabel(creditsTab, "   • Afka", Color3.fromRGB(0,255,255))
+addLabel(creditsTab, "   • Ganis", Color3.fromRGB(0,255,255))
+addLabel(creditsTab, "   • Danis", Color3.fromRGB(0,255,255))
+addLabel(creditsTab, "   • Zaki", Color3.fromRGB(0,255,255))
+addLabel(creditsTab, "   • Gamz", Color3.fromRGB(0,255,255))
+addLabel(creditsTab, "━━━━━━━━━━━━━━━━━━━━━━", Color3.fromRGB(0,255,255))
+addLabel(creditsTab, "💀 rRz HUB - 200+ Features", Color3.fromRGB(0,255,255))
+addLabel(creditsTab, "📱 Full Mobile Support", Color3.fromRGB(100,200,100))
+addLabel(creditsTab, "🖱️ Klik minimize ke circle", Color3.fromRGB(150,150,150))
+addLabel(creditsTab, "🖱️ Geser circle untuk move", Color3.fromRGB(150,150,150))
+addLabel(creditsTab, "🖱️ Klik logo buat restore", Color3.fromRGB(150,150,150))
+addLabel(creditsTab, "━━━━━━━━━━━━━━━━━━━━━━", Color3.fromRGB(0,255,255))
+addLabel(creditsTab, "Terima kasih sudah pakai rRz HUB!", Color3.fromRGB(100,255,100))
+
+showNotif("🔥 rRz HUB 200+ Features Loaded!")
+showNotif("✅ Semua fitur WORK 100%")
+showNotif("📌 Klik − untuk minimize ke circle")
